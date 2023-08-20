@@ -1,0 +1,55 @@
+name: Go package
+
+on: [push]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0-debian
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+        ports:
+          - 33306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    env:
+      DB_DATABASE: test_db
+      DB_USER: root
+      DB_PASSWORD: root
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+
+      - name: Build
+        run:  make build
+
+      - name: Lint
+        run:  make lint
+
+      - name: Unit test
+        run:  make test
+
+      - name: Start local MySQL
+        run:  sudo systemctl start mysql
+
+      - name: MySQL Test
+        run:  |
+          export PATH="$PATH:bin"
+          script/ci-github.sh
+
+      - name: Upload schemadiff binary artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: schemadiff
+          path: bin/schemadiff
