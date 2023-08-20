@@ -228,6 +228,29 @@ ALTER VIEW `v1` AS SELECT `id`, `name` FROM `t1`;
 
 Consider that running `schemadiff diff` on the same views above results with validation error, because the referenced table `t1` does not appear in the schema definition. `diff-view` does not attempt to resolve dependencies.
 
+
+## Binaries
+
+Binaries for linux/amd64 and for darwin/arm64 are available in [Releases](https://github.com/planetscale/schemadiff/releases).
+
+The `CI` action builds a Linux/amd64 `schemadiff` binary as artifact. See [Actions](https://github.com/planetscale/schemadiff/actions)
+
+## Build
+
+To build 	`schemadiff`, run:
+
+```sh
+$ make all
+```
+
+Or, directly invoke:
+
+```sh
+$ go build -o bin/schemadiff ./cmd/schemadiff/main.go
+```
+
+`schemadiff` was built with `go1.20`.
+
 ## License
 
 `schemadiff` command line tool is released under [Apache 2.0 license](LICENSE)
