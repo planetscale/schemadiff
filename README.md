@@ -246,7 +246,7 @@ $ make all
 Or, directly invoke:
 
 ```sh
-$ go build -o bin/schemadiff ./cmd/schemadiff/main.go
+$ go build -trimpath -o bin/schemadiff ./cmd/schemadiff/main.go
 ```
 
 `schemadiff` was built with `go1.20`.
