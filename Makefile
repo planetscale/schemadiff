@@ -6,7 +6,7 @@ build:
 	go build -trimpath -o bin/schemadiff ./cmd/schemadiff/main.go
 
 lint:
-	golangci-lint run ./...
+	golangci-lint run ./... --timeout 5m
 
 test:
 	go test ./...
