@@ -28,14 +28,15 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-
       - name: Build
         run:  make build
 
       - name: Lint
-        run:  make lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.51.2
+          args: --timeout=5m
+          skip-cache: false
 
       - name: Unit test
         run:  make test
