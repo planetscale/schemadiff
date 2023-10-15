@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"vitess.io/vitess/go/vt/schemadiff"
 )
 
 var (
@@ -14,6 +16,30 @@ var (
 // Teh function returns a textual output, which is later send to standard output.
 func Exec(command string, source string, target string) (output string, err error) {
 	var bld strings.Builder
+	getDiffs := func(ordered bool) (err error) {
+		if source == target {
+			return ErrIdenticalSourceTarget
+		}
+		diff, err := DiffSchemas(source, target)
+		if err != nil {
+			return err
+		}
+
+		var diffs []schemadiff.EntityDiff
+		if ordered {
+			diffs, err = diff.OrderedDiffs()
+			if err != nil {
+				return err
+			}
+		} else {
+			diffs = diff.UnorderedDiffs()
+		}
+		for _, d := range diffs {
+			bld.WriteString(d.CanonicalStatementString())
+			bld.WriteString(";\n")
+		}
+		return nil
+	}
 	switch command {
 	case "load":
 		schema, err := LoadSchema(source)
@@ -25,16 +51,12 @@ func Exec(command string, source string, target string) (output string, err erro
 			bld.WriteString(";\n")
 		}
 	case "diff":
-		if source == target {
-			return "", ErrIdenticalSourceTarget
-		}
-		diff, err := DiffSchemas(source, target)
-		if err != nil {
+		if err := getDiffs(false); err != nil {
 			return "", err
 		}
-		for _, d := range diff.UnorderedDiffs() {
-			bld.WriteString(d.CanonicalStatementString())
-			bld.WriteString(";\n")
+	case "ordered-diff":
+		if err := getDiffs(true); err != nil {
+			return "", err
 		}
 	case "diff-table":
 		if source == target {

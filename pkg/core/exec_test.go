@@ -252,15 +252,19 @@ func TestExecDiff(t *testing.T) {
 			expectError: ErrIdenticalSourceTarget.Error(),
 		},
 	}
-	for _, tcase := range tcases {
-		t.Run(tcase.name, func(t *testing.T) {
-			diff, err := Exec("diff", tcase.source, tcase.target)
-			if tcase.expectError == "" {
-				assert.NoError(t, err)
-				assert.Equal(t, sqlsToMultiStatementText(tcase.expectDiff), diff)
-			} else {
-				assert.Error(t, err)
-				assert.ErrorContains(t, err, tcase.expectError)
+	for _, cmd := range []string{"diff", "ordered-diff"} {
+		t.Run(cmd, func(t *testing.T) {
+			for _, tcase := range tcases {
+				t.Run(tcase.name, func(t *testing.T) {
+					diff, err := Exec(cmd, tcase.source, tcase.target)
+					if tcase.expectError == "" {
+						assert.NoError(t, err)
+						assert.Equal(t, sqlsToMultiStatementText(tcase.expectDiff), diff)
+					} else {
+						assert.Error(t, err)
+						assert.ErrorContains(t, err, tcase.expectError)
+					}
+				})
 			}
 		})
 	}

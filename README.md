@@ -14,6 +14,7 @@ The `schemadiff` executable supports these operations:
 
 - `load`: read a table, view or full schema, validate, normalize, and output the normalized form.
 - `diff`: given two schemas, _source_ and _target_, output the DDL (`CREATE`, `ALTER`, `DROP`) statements that when applied to the _source_ schema, result in _target_ schema. The output is empty when the two schemas are identical.
+- `ordered-diff`: similar to `diff` but stricter, output the DDL in a sequential-applicable order, or fail if such order cannot be found. This operation resolves dependencies between the diffs themselves, such as changes made to both tables and views that depend on those tables, or tables inovled in a foreign key relationships.
 - `diff-table`: given two table definitions, _source_ and _target_, output the `ALTER TABLE` statement that would convert the _source_ table into _target_. The two tables may have different names. The output is empty when the two tables are identical.
 - `diff-view`: given two view definitions, _source_ and _target_, output the `ALTER VIEW` statement that would convert the _source_ view into _target_. The two views may have different names. The output is empty when the two tables are identical.
 
