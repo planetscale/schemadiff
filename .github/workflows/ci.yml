@@ -37,6 +37,7 @@ jobs:
           version: v1.51.2
           args: --timeout=5m
           skip-cache: false
+          skip-pkg-cache: true
 
       - name: Unit test
         run:  make test
