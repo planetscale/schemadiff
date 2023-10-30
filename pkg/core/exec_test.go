@@ -30,12 +30,12 @@ var (
 	}
 	loadFrom = []string{
 		"CREATE TABLE `t1` (\n\t`id` int,\n\tPRIMARY KEY (`id`)\n)",
-		"CREATE TABLE `t2` (\n\t`id` int,\n\t`name` varchar(12),\n\tPRIMARY KEY (`id`),\n\tKEY `name_idx` (`name`)\n)",
+		"CREATE TABLE `t2` (\n\t`id` int,\n\t`name` varchar(12),\n\tPRIMARY KEY (`id`),\n\tINDEX `name_idx` (`name`)\n)",
 		"CREATE VIEW `v1` AS SELECT `id` FROM `t1`",
 	}
 	loadTo = []string{
 		"CREATE TABLE `t1` (\n\t`id` int unsigned,\n\tPRIMARY KEY (`id`)\n)",
-		"CREATE TABLE `t2` (\n\t`id` int,\n\t`name` varchar(12),\n\tPRIMARY KEY (`id`),\n\tKEY `name_idx` (`name`)\n)",
+		"CREATE TABLE `t2` (\n\t`id` int,\n\t`name` varchar(12),\n\tPRIMARY KEY (`id`),\n\tINDEX `name_idx` (`name`)\n)",
 		"CREATE TABLE `t3` (\n\t`id` int,\n\t`age` int unsigned,\n\tPRIMARY KEY (`id`)\n)",
 		"CREATE VIEW `vone` AS SELECT `id` FROM `t1`",
 	}
