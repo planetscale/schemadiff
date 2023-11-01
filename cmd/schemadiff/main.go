@@ -24,7 +24,7 @@ func main() {
 
 	args := flag.Args()
 	if len(args) != 1 {
-		exitWithError(errors.New("one argument expected. Usage: schemadiff [flags...] <load|diff|diff-table|diff-view>"))
+		exitWithError(errors.New("one argument expected. Usage: schemadiff [flags...] <load|diff|ordered-diff|diff-table|diff-view>"))
 	}
 	command := args[0]
 	output, err := core.Exec(ctx, command, *source, *target)
