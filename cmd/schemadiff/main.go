@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -15,6 +16,8 @@ func exitWithError(err error) {
 }
 
 func main() {
+	ctx := context.Background()
+
 	source := flag.String("source", "", "Input source (file name / directory / empty for stdin)")
 	target := flag.String("target", "", "Input target (file name / directory / empty for stdin)")
 	flag.Parse()
@@ -24,7 +27,7 @@ func main() {
 		exitWithError(errors.New("one argument expected. Usage: schemadiff [flags...] <load|diff|diff-table|diff-view>"))
 	}
 	command := args[0]
-	output, err := core.Exec(command, *source, *target)
+	output, err := core.Exec(ctx, command, *source, *target)
 	if err != nil {
 		exitWithError(err)
 	}

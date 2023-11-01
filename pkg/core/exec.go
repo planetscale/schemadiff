@@ -1,20 +1,27 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"vitess.io/vitess/go/vt/schemadiff"
 )
 
 var (
 	ErrIdenticalSourceTarget = errors.New("--source and --target must be different")
+
+	timeout = time.Minute * 5
 )
 
 // Exec is the main execution entry for this app, called by the main() function.
 // Teh function returns a textual output, which is later send to standard output.
-func Exec(command string, source string, target string) (output string, err error) {
+func Exec(ctx context.Context, command string, source string, target string) (output string, err error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	var bld strings.Builder
 	getDiffs := func(ordered bool) (err error) {
 		if source == target {
@@ -27,7 +34,7 @@ func Exec(command string, source string, target string) (output string, err erro
 
 		var diffs []schemadiff.EntityDiff
 		if ordered {
-			diffs, err = diff.OrderedDiffs()
+			diffs, err = diff.OrderedDiffs(ctx)
 			if err != nil {
 				return err
 			}
