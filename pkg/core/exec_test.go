@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"vitess.io/vitess/go/vt/schemadiff"
+	"vitess.io/vitess/go/vt/sqlparser"
 )
 
 // This unit-test file validates the high level operation of the Exec function, and specifically its
@@ -263,7 +264,34 @@ func TestExecDiff(t *testing.T) {
 					diff, err := Exec(ctx, cmd, tcase.source, tcase.target)
 					if tcase.expectError == "" {
 						assert.NoError(t, err)
-						assert.Equal(t, sqlsToMultiStatementText(tcase.expectDiff), diff)
+						switch cmd {
+						case "diff":
+							assert.Equal(t, sqlsToMultiStatementText(tcase.expectDiff), diff)
+						case "ordered-diff":
+							// Remember this unit test is not about validating schemadiff logic, we only care about
+							// how we read information from schemadiff. The result of OrderedDiffs(), when successful,
+							// is the same set of diffs as UnorderedDiffs(), but in different order.
+							// In the below we do some plumbing to extract and normalize all the queries, then
+							// compare the diffs ignoring order.
+							sqls, err := sqlparser.SplitStatementToPieces(diff)
+							require.NoError(t, err)
+							for i := range sqls {
+								stmt, err := sqlparser.Parse(sqls[i])
+								require.NoError(t, err)
+								sqls[i] = sqlparser.CanonicalString(stmt)
+							}
+
+							expects := []string{}
+							for i := range tcase.expectDiff {
+								stmt, err := sqlparser.Parse(tcase.expectDiff[i])
+								require.NoError(t, err)
+								expects = append(expects, sqlparser.CanonicalString(stmt))
+							}
+
+							assert.ElementsMatch(t, expects, sqls)
+						default:
+							assert.Failf(t, "unknown command: %v", cmd)
+						}
 					} else {
 						assert.Error(t, err)
 						assert.ErrorContains(t, err, tcase.expectError)
