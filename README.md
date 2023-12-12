@@ -14,7 +14,7 @@ The `schemadiff` executable supports these operations:
 
 - `load`: read a table, view or full schema, validate, normalize, and output the normalized form.
 - `diff`: given two schemas, _source_ and _target_, output the DDL (`CREATE`, `ALTER`, `DROP`) statements that when applied to the _source_ schema, result in _target_ schema. The output is empty when the two schemas are identical.
-- `ordered-diff`: similar to `diff` but stricter, output the DDL in a sequential-applicable order, or fail if such order cannot be found. This operation resolves dependencies between the diffs themselves, such as changes made to both tables and views that depend on those tables, or tables inovled in a foreign key relationships.
+- `ordered-diff`: similar to `diff` but stricter, output the DDL in a sequential-applicable order, or fail if such order cannot be found. This operation resolves dependencies between the diffs themselves, such as changes made to both tables and views that depend on those tables, or tables involved in a foreign key relationships.
 - `diff-table`: given two table definitions, _source_ and _target_, output the `ALTER TABLE` statement that would convert the _source_ table into _target_. The two tables may have different names. The output is empty when the two tables are identical.
 - `diff-view`: given two view definitions, _source_ and _target_, output the `ALTER VIEW` statement that would convert the _source_ view into _target_. The two views may have different names. The output is empty when the two tables are identical.
 
@@ -189,6 +189,22 @@ $ schemadiff diff --source /tmp/schema.sql --target /tmp/empty_schema.sql
 DROP VIEW `v`;
 DROP TABLE `t`;
 ```
+
+### ordered-diff
+
+- Generate a diff that has a strict ordering dependency:
+
+```sh
+$ echo "create table parent (id int primary key, uuid varchar(32) charset ascii); create table child (id int primary key, parent_uuid varchar(32) charset ascii)" > /tmp/schema_v1.sql
+$ echo "create table parent (id int primary key, uuid varchar(32) charset ascii, unique key uuid_idx (uuid)); create table child (id int primary key, parent_uuid varchar(32) charset ascii, foreign key (parent_uuid) references parent (uuid))" > /tmp/schema_v2.sql
+$ schemadiff ordered-diff --source /tmp/schema_v1.sql --target /tmp/schema_v2.sql
+```
+```sql
+ALTER TABLE `parent` ADD UNIQUE KEY `uuid_idx` (`uuid`);
+ALTER TABLE `child` ADD KEY `parent_uuid` (`parent_uuid`), ADD CONSTRAINT `child_ibfk_1` FOREIGN KEY (`parent_uuid`) REFERENCES `parent` (`uuid`);
+```
+
+Note that in the above the change on `child` cannot take place before the change on `parent`, because a MySQL foreign key requires an index on the referenced table column(s). `ordered-diff` returns an error if there is no serial sequence of steps which maintains validity at each step.
 
 ### diff-table
 
