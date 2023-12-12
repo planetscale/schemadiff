@@ -25,8 +25,9 @@ The `schemadiff` executable supports these operations:
 - MySQL `8.0` dialect.
 - `TABLE` and `VIEW` definitions. Stored routines (procedures/functions/triggers/events) are unsupported.
 - Nested views, view table and column validation.
-- Foreign keys, nested foreign keys. Cyclic foreign key only supported on same-table cycle.
-- Partitions; diffs mostly rebuild partitioning schemes and not optimal.
+- Check constraints, virtual columns, expressions.
+- Foreign keys, nested foreign keys. Self-referencing tables are supported, otherwise cyclic foreign keys are not.
+- Partitions: non-optimal diffs, in most situations rebuilding the entire partitioning scheme.
 
 ## Usage and examples
 
