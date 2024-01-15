@@ -7,7 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"vitess.io/vitess/go/mysql/collations"
 	"vitess.io/vitess/go/vt/schemadiff"
+	"vitess.io/vitess/go/vt/sqlparser"
 )
 
 var (
@@ -16,18 +18,28 @@ var (
 	timeout = time.Minute * 5
 )
 
+const mysqlVersion = "8.0.35"
+
 // Exec is the main execution entry for this app, called by the main() function.
 // Teh function returns a textual output, which is later send to standard output.
 func Exec(ctx context.Context, command string, source string, target string) (output string, err error) {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
+	collEnv := collations.NewEnvironment(mysqlVersion)
+	parser, err := sqlparser.New(sqlparser.Options{
+		MySQLServerVersion: mysqlVersion,
+	})
+	if err != nil {
+		return "", err
+	}
+	env := schemadiff.NewEnv(collEnv, collEnv.DefaultConnectionCharset(), parser, mysqlVersion)
 	var bld strings.Builder
 	getDiffs := func(ordered bool) (err error) {
 		if source == target {
 			return ErrIdenticalSourceTarget
 		}
-		diff, err := DiffSchemas(source, target)
+		diff, err := DiffSchemas(env, source, target)
 		if err != nil {
 			return err
 		}
@@ -49,7 +61,7 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 	}
 	switch command {
 	case "load":
-		schema, err := LoadSchema(source)
+		schema, err := LoadSchema(env, source)
 		if err != nil {
 			return "", err
 		}
@@ -69,7 +81,7 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 		if source == target {
 			return "", ErrIdenticalSourceTarget
 		}
-		diff, err := DiffTables(source, target)
+		diff, err := DiffTables(env, source, target)
 		if err != nil {
 			return "", err
 		}
@@ -81,7 +93,7 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 		if source == target {
 			return "", ErrIdenticalSourceTarget
 		}
-		diff, err := DiffViews(source, target)
+		diff, err := DiffViews(env, source, target)
 		if err != nil {
 			return "", err
 		}

@@ -257,6 +257,7 @@ func TestExecDiff(t *testing.T) {
 			expectError: ErrIdenticalSourceTarget.Error(),
 		},
 	}
+	parser := sqlparser.NewTestParser()
 	for _, cmd := range []string{"diff", "ordered-diff"} {
 		t.Run(cmd, func(t *testing.T) {
 			for _, tcase := range tcases {
@@ -273,17 +274,17 @@ func TestExecDiff(t *testing.T) {
 							// is the same set of diffs as UnorderedDiffs(), but in different order.
 							// In the below we do some plumbing to extract and normalize all the queries, then
 							// compare the diffs ignoring order.
-							sqls, err := sqlparser.SplitStatementToPieces(diff)
+							sqls, err := parser.SplitStatementToPieces(diff)
 							require.NoError(t, err)
 							for i := range sqls {
-								stmt, err := sqlparser.Parse(sqls[i])
+								stmt, err := parser.Parse(sqls[i])
 								require.NoError(t, err)
 								sqls[i] = sqlparser.CanonicalString(stmt)
 							}
 
 							expects := []string{}
 							for i := range tcase.expectDiff {
-								stmt, err := sqlparser.Parse(tcase.expectDiff[i])
+								stmt, err := parser.Parse(tcase.expectDiff[i])
 								require.NoError(t, err)
 								expects = append(expects, sqlparser.CanonicalString(stmt))
 							}
