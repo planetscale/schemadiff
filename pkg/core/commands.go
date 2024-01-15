@@ -3,8 +3,9 @@ package core
 import (
 	"fmt"
 
-	"github.com/planetscale/schemadiff/pkg/base"
 	"vitess.io/vitess/go/vt/schemadiff"
+
+	"github.com/planetscale/schemadiff/pkg/base"
 )
 
 var (
@@ -16,18 +17,18 @@ var (
 
 // LoadSchema returns a Schema, loaded from given input. The Schema is loaded, validated and normalized.
 // Input can be stdin, file, directory, or MySQL URI.
-func LoadSchema(inputSourceValue string) (*schemadiff.Schema, error) {
-	return base.ReadSchemaFromSource(inputSourceValue)
+func LoadSchema(env *schemadiff.Environment, inputSourceValue string) (*schemadiff.Schema, error) {
+	return base.ReadSchemaFromSource(env, inputSourceValue)
 }
 
 // DiffSchemas returns a rich diff between two given schemas.
 // Inputs can be stdin, file, directory, or MySQL URI.
-func DiffSchemas(inputSourceValue string, targetInputSourceValue string) (*schemadiff.SchemaDiff, error) {
-	sourceSchema, err := base.ReadSchemaFromSource(inputSourceValue)
+func DiffSchemas(env *schemadiff.Environment, inputSourceValue string, targetInputSourceValue string) (*schemadiff.SchemaDiff, error) {
+	sourceSchema, err := base.ReadSchemaFromSource(env, inputSourceValue)
 	if err != nil {
 		return nil, err
 	}
-	targetSchema, err := base.ReadSchemaFromSource(targetInputSourceValue)
+	targetSchema, err := base.ReadSchemaFromSource(env, targetInputSourceValue)
 	if err != nil {
 		return nil, err
 	}
@@ -37,9 +38,9 @@ func DiffSchemas(inputSourceValue string, targetInputSourceValue string) (*schem
 // DiffTables returns a rich diff between two given tables. The function expect the inputs to each
 // contain a single CREATE TABLE statement, and returns with error if not so. The two tables are allowed to have different names.
 // Inputs can be stdin, file, directory, or MySQL URI.
-func DiffTables(inputSourceValue string, targetInputSourceValue string) (schemadiff.EntityDiff, error) {
+func DiffTables(env *schemadiff.Environment, inputSourceValue string, targetInputSourceValue string) (schemadiff.EntityDiff, error) {
 	readTableSQL := func(sourceValue string) (string, error) {
-		sqls, err := base.ReadSQLsFromSource(sourceValue)
+		sqls, err := base.ReadSQLsFromSource(env, sourceValue)
 		if err != nil {
 			return "", err
 		}
@@ -56,15 +57,15 @@ func DiffTables(inputSourceValue string, targetInputSourceValue string) (schemad
 	if err != nil {
 		return nil, err
 	}
-	return schemadiff.DiffCreateTablesQueries(sourceTable, targetTable, defaultDiffHints)
+	return schemadiff.DiffCreateTablesQueries(env, sourceTable, targetTable, defaultDiffHints)
 }
 
 // DiffViews returns a rich diff between two given views. The function expect the inputs to each
 // contain a single CREATE VIEW statement, and returns with error if not so. The two views are allowed to have different names.
 // Inputs can be stdin, file, directory, or MySQL URI.
-func DiffViews(inputSourceValue string, targetInputSourceValue string) (schemadiff.EntityDiff, error) {
+func DiffViews(env *schemadiff.Environment, inputSourceValue string, targetInputSourceValue string) (schemadiff.EntityDiff, error) {
 	readViewSQL := func(sourceValue string) (string, error) {
-		sqls, err := base.ReadSQLsFromSource(sourceValue)
+		sqls, err := base.ReadSQLsFromSource(env, sourceValue)
 		if err != nil {
 			return "", err
 		}
@@ -81,5 +82,5 @@ func DiffViews(inputSourceValue string, targetInputSourceValue string) (schemadi
 	if err != nil {
 		return nil, err
 	}
-	return schemadiff.DiffCreateViewsQueries(sourceView, targetView, defaultDiffHints)
+	return schemadiff.DiffCreateViewsQueries(env, sourceView, targetView, defaultDiffHints)
 }

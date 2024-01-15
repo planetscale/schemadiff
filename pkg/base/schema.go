@@ -9,17 +9,16 @@ import (
 	"strings"
 	"sync"
 
-	mysql "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 	"golang.org/x/sync/errgroup"
 
 	"vitess.io/vitess/go/vt/proto/vtrpc"
 	"vitess.io/vitess/go/vt/schemadiff"
-	"vitess.io/vitess/go/vt/sqlparser"
 	"vitess.io/vitess/go/vt/vterrors"
 )
 
 // ReadSQLsFromSource returns a list of CREATE TABLE|VIEW statements as read from given input.
-func ReadSQLsFromSource(inputSourceValue string) (sqls []string, err error) {
+func ReadSQLsFromSource(env *schemadiff.Environment, inputSourceValue string) (sqls []string, err error) {
 	inputSourceType, err := DetectInputSource(inputSourceValue)
 	if err != nil {
 		return nil, vterrors.Wrapf(err, "cannot read schema")
@@ -32,7 +31,7 @@ func ReadSQLsFromSource(inputSourceValue string) (sqls []string, err error) {
 		if err != nil {
 			return nil, vterrors.Wrapf(err, "reading standard output")
 		}
-		return sqlparser.SplitStatementToPieces(strings.TrimSpace(string(b)))
+		return env.Parser.SplitStatementToPieces(strings.TrimSpace(string(b)))
 	case FileInputSource:
 		// Read given file. It may contain any number (zero included) number of CREATE TABLE|VIEW statements,
 		// delimtied by ';'
@@ -40,7 +39,7 @@ func ReadSQLsFromSource(inputSourceValue string) (sqls []string, err error) {
 		if err != nil {
 			return nil, vterrors.Wrapf(err, "reading file %s", inputSourceValue)
 		}
-		return sqlparser.SplitStatementToPieces(strings.TrimSpace(string(b)))
+		return env.Parser.SplitStatementToPieces(strings.TrimSpace(string(b)))
 	case DirectoryInputSource:
 		// Read all .sql files in this directory. Each file assumed to contain a single CREATE TABLE}VIEW statememt.
 		var sqls []string
@@ -69,12 +68,12 @@ func ReadSQLsFromSource(inputSourceValue string) (sqls []string, err error) {
 
 // ReadSchemaFromSource returns a loaded, validated, normalized formal Schema from the given source,
 // or an error if either the source or the schema are invalid.
-func ReadSchemaFromSource(inputSourceValue string) (*schemadiff.Schema, error) {
-	sqls, err := ReadSQLsFromSource(inputSourceValue)
+func ReadSchemaFromSource(env *schemadiff.Environment, inputSourceValue string) (*schemadiff.Schema, error) {
+	sqls, err := ReadSQLsFromSource(env, inputSourceValue)
 	if err != nil {
 		return nil, err
 	}
-	return schemadiff.NewSchemaFromQueries(sqls)
+	return schemadiff.NewSchemaFromQueries(env, sqls)
 }
 
 // writeEscapedString escapes a table or db name with backtick quotes.
