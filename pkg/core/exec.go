@@ -9,7 +9,6 @@ import (
 
 	"vitess.io/vitess/go/mysql/collations"
 	"vitess.io/vitess/go/vt/schemadiff"
-	"vitess.io/vitess/go/vt/servenv"
 	"vitess.io/vitess/go/vt/vtenv"
 )
 
@@ -30,8 +29,6 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 	collEnv := collations.NewEnvironment(mysqlVersion)
 	vtenv, err := vtenv.New(vtenv.Options{
 		MySQLServerVersion: mysqlVersion,
-		TruncateUILen:      servenv.TruncateUILen,
-		TruncateErrLen:     servenv.TruncateErrLen,
 	})
 	if err != nil {
 		return "", err
