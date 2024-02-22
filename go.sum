@@ -333,5 +333,5 @@ honnef.co/go/gotraceui v0.2.0 h1:dmNsfQ9Vl3GwbiVD7Z8d/osC6WtGGrasyrC2suc4ZIQ=
 honnef.co/go/gotraceui v0.2.0/go.mod h1:qHo4/W75cA3bX0QQoSvDjbJa4R8mAyyFjbWAj63XElc=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
-vitess.io/vitess v0.10.3-0.20240215220334-f82fb7cbd03d h1:kD0TEzEX3BQ6GJR4ML/3KM/x9D3xU0pGbGYbiJo7GUM=
-vitess.io/vitess v0.10.3-0.20240215220334-f82fb7cbd03d/go.mod h1:g1Pesjl1Po6arLGYzrhdM2pHA7onAvEFCNrjiZHMnGc=
+vitess.io/vitess v0.10.3-0.20240222075616-c536bb7b2660 h1:vaqznlLqgR9w/r8qWMXofoSm2eDI0JxaXerA7fM8XyQ=
+vitess.io/vitess v0.10.3-0.20240222075616-c536bb7b2660/go.mod h1:IsIXgK8exqVYJoIoAIKG9aW688K8skqzN4wde9zXnZ4=
