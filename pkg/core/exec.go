@@ -9,7 +9,7 @@ import (
 
 	"vitess.io/vitess/go/mysql/collations"
 	"vitess.io/vitess/go/vt/schemadiff"
-	"vitess.io/vitess/go/vt/sqlparser"
+	"vitess.io/vitess/go/vt/vtenv"
 )
 
 var (
@@ -27,13 +27,13 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 	defer cancel()
 
 	collEnv := collations.NewEnvironment(mysqlVersion)
-	parser, err := sqlparser.New(sqlparser.Options{
+	vtenv, err := vtenv.New(vtenv.Options{
 		MySQLServerVersion: mysqlVersion,
 	})
 	if err != nil {
 		return "", err
 	}
-	env := schemadiff.NewEnv(collEnv, collEnv.DefaultConnectionCharset(), parser, mysqlVersion)
+	env := schemadiff.NewEnv(vtenv, collEnv.DefaultConnectionCharset())
 	var bld strings.Builder
 	getDiffs := func(ordered bool) (err error) {
 		if source == target {

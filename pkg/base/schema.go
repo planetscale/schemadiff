@@ -31,7 +31,7 @@ func ReadSQLsFromSource(env *schemadiff.Environment, inputSourceValue string) (s
 		if err != nil {
 			return nil, vterrors.Wrapf(err, "reading standard output")
 		}
-		return env.Parser.SplitStatementToPieces(strings.TrimSpace(string(b)))
+		return env.Parser().SplitStatementToPieces(strings.TrimSpace(string(b)))
 	case FileInputSource:
 		// Read given file. It may contain any number (zero included) number of CREATE TABLE|VIEW statements,
 		// delimtied by ';'
@@ -39,7 +39,7 @@ func ReadSQLsFromSource(env *schemadiff.Environment, inputSourceValue string) (s
 		if err != nil {
 			return nil, vterrors.Wrapf(err, "reading file %s", inputSourceValue)
 		}
-		return env.Parser.SplitStatementToPieces(strings.TrimSpace(string(b)))
+		return env.Parser().SplitStatementToPieces(strings.TrimSpace(string(b)))
 	case DirectoryInputSource:
 		// Read all .sql files in this directory. Each file assumed to contain a single CREATE TABLE}VIEW statememt.
 		var sqls []string
