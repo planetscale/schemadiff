@@ -11,7 +11,7 @@ import (
 )
 
 func exitWithError(err error) {
-	fmt.Println(err)
+	fmt.Fprintf(os.Stderr, "%+v\n", err)
 	os.Exit(2)
 }
 
