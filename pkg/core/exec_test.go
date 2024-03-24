@@ -101,16 +101,33 @@ func TestExecLoad(t *testing.T) {
 		fileFrom := writeSchemaFile(t, schemaFrom)
 		require.NotEmpty(t, fileFrom)
 		defer os.RemoveAll(fileFrom)
-		schema, err := Exec(ctx, "load", fileFrom, "")
+		schema, err := Exec(ctx, "load", fileFrom, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, sqlsToMultiStatementText(loadFrom), schema)
+	})
+	t.Run("from-file-textual", func(t *testing.T) {
+		fileFrom := writeSchemaFile(t, schemaFrom)
+		require.NotEmpty(t, fileFrom)
+		defer os.RemoveAll(fileFrom)
+		schema, err := Exec(ctx, "load", fileFrom, "", true)
+		assert.NoError(t, err)
+		expect := []string{}
+		for _, sql := range loadFrom {
+			lines := strings.Split(sql, "\n")
+			for i := range lines {
+				lines[i] = "+" + lines[i]
+			}
+			sql = strings.Join(lines, "\n")
+			expect = append(expect, sql)
+		}
+		assert.Equal(t, sqlsToMultiStatementText(expect), schema)
 	})
 
 	t.Run("from-dir", func(t *testing.T) {
 		dirFrom := writeSchemaDir(t, schemaFrom)
 		require.NotEmpty(t, dirFrom)
 		defer os.RemoveAll(dirFrom)
-		schema, err := Exec(ctx, "load", dirFrom, "")
+		schema, err := Exec(ctx, "load", dirFrom, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, sqlsToMultiStatementText(loadFrom), schema)
 	})
@@ -119,7 +136,7 @@ func TestExecLoad(t *testing.T) {
 		fileTo := writeSchemaFile(t, schemaTo)
 		require.NotEmpty(t, fileTo)
 		defer os.RemoveAll(fileTo)
-		schema, err := Exec(ctx, "load", fileTo, "")
+		schema, err := Exec(ctx, "load", fileTo, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, sqlsToMultiStatementText(loadTo), schema)
 	})
@@ -128,7 +145,7 @@ func TestExecLoad(t *testing.T) {
 		dirTo := writeSchemaDir(t, schemaTo)
 		require.NotEmpty(t, dirTo)
 		defer os.RemoveAll(dirTo)
-		schema, err := Exec(ctx, "load", dirTo, "")
+		schema, err := Exec(ctx, "load", dirTo, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, sqlsToMultiStatementText(loadTo), schema)
 	})
@@ -137,7 +154,7 @@ func TestExecLoad(t *testing.T) {
 		require.NotEmpty(t, emptyFile) // testing that the *name* is not empty...
 		defer os.RemoveAll(emptyFile)
 
-		schema, err := Exec(ctx, "load", emptyFile, "")
+		schema, err := Exec(ctx, "load", emptyFile, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, "", schema)
 	})
@@ -169,6 +186,7 @@ func TestExecDiff(t *testing.T) {
 		name        string
 		source      string
 		target      string
+		textual     bool
 		expectDiff  []string
 		expectError string
 	}{
@@ -262,7 +280,7 @@ func TestExecDiff(t *testing.T) {
 		t.Run(cmd, func(t *testing.T) {
 			for _, tcase := range tcases {
 				t.Run(tcase.name, func(t *testing.T) {
-					diff, err := Exec(ctx, cmd, tcase.source, tcase.target)
+					diff, err := Exec(ctx, cmd, tcase.source, tcase.target, tcase.textual)
 					if tcase.expectError == "" {
 						assert.NoError(t, err)
 						switch cmd {
@@ -314,7 +332,7 @@ func TestExecDiffTable(t *testing.T) {
 		require.NotEmpty(t, to)
 		defer os.RemoveAll(to)
 
-		diff, err := Exec(ctx, "diff-table", from, to)
+		diff, err := Exec(ctx, "diff-table", from, to, false)
 		assert.NoError(t, err)
 		assert.Equal(t, "ALTER TABLE `t1` MODIFY COLUMN `id` int unsigned;\n", diff)
 	})
@@ -327,9 +345,22 @@ func TestExecDiffTable(t *testing.T) {
 		require.NotEmpty(t, to)
 		defer os.RemoveAll(to)
 
-		diff, err := Exec(ctx, "diff-table", from, to)
+		diff, err := Exec(ctx, "diff-table", from, to, false)
 		assert.NoError(t, err)
 		assert.Equal(t, "ALTER TABLE `t1` ADD COLUMN `age` int unsigned;\n", diff)
+	})
+	t.Run("t1-t3-textual", func(t *testing.T) {
+		from := writeSchemaFile(t, schemaFrom[0:1])
+		require.NotEmpty(t, from)
+		defer os.RemoveAll(from)
+
+		to := writeSchemaFile(t, schemaTo[3:])
+		require.NotEmpty(t, to)
+		defer os.RemoveAll(to)
+
+		diff, err := Exec(ctx, "diff-table", from, to, true)
+		assert.NoError(t, err)
+		assert.Equal(t, " CREATE TABLE `t1` (\n \t`id` int,\n+\t`age` int unsigned,\n \tPRIMARY KEY (`id`)\n );\n", diff)
 	})
 	t.Run("t1-vone", func(t *testing.T) {
 		from := writeSchemaFile(t, schemaFrom[0:1])
@@ -340,7 +371,7 @@ func TestExecDiffTable(t *testing.T) {
 		require.NotEmpty(t, to)
 		defer os.RemoveAll(to)
 
-		_, err := Exec(ctx, "diff-table", from, to)
+		_, err := Exec(ctx, "diff-table", from, to, false)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, schemadiff.ErrExpectedCreateTable)
 	})
@@ -353,7 +384,7 @@ func TestExecDiffTable(t *testing.T) {
 		require.NotEmpty(t, to)
 		defer os.RemoveAll(to)
 
-		diff, err := Exec(ctx, "diff-view", from, to)
+		diff, err := Exec(ctx, "diff-view", from, to, false)
 		assert.NoError(t, err)
 		assert.Empty(t, diff)
 	})
@@ -366,7 +397,7 @@ func TestExecDiffTable(t *testing.T) {
 		require.NotEmpty(t, to)
 		defer os.RemoveAll(to)
 
-		diff, err := Exec(ctx, "diff-view", from, to)
+		diff, err := Exec(ctx, "diff-view", from, to, false)
 		assert.NoError(t, err)
 		assert.Equal(t, "ALTER VIEW `v1` AS SELECT `id`, 1 FROM `t1`;\n", diff)
 	})
@@ -380,12 +411,12 @@ func TestExecDiffTable(t *testing.T) {
 		defer os.RemoveAll(to)
 
 		{
-			_, err := Exec(ctx, "diff-table", from, to)
+			_, err := Exec(ctx, "diff-table", from, to, false)
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "expected one CREATE TABLE statement")
 		}
 		{
-			_, err := Exec(ctx, "diff-table", to, from)
+			_, err := Exec(ctx, "diff-table", to, from, false)
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, "expected one CREATE TABLE statement")
 		}

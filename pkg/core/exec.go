@@ -22,7 +22,7 @@ const mysqlVersion = "8.0.35"
 
 // Exec is the main execution entry for this app, called by the main() function.
 // Teh function returns a textual output, which is later send to standard output.
-func Exec(ctx context.Context, command string, source string, target string) (output string, err error) {
+func Exec(ctx context.Context, command string, source string, target string, textual bool) (output string, err error) {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
@@ -35,6 +35,15 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 	}
 	env := schemadiff.NewEnv(vtenv, collEnv.DefaultConnectionCharset())
 	var bld strings.Builder
+	writeDiff := func(d schemadiff.EntityDiff) {
+		if textual {
+			_, _, unified := d.Annotated()
+			bld.WriteString(unified.Export())
+		} else {
+			bld.WriteString(d.CanonicalStatementString())
+		}
+		bld.WriteString(";\n")
+	}
 	getDiffs := func(ordered bool) (err error) {
 		if source == target {
 			return ErrIdenticalSourceTarget
@@ -54,8 +63,7 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 			diffs = diff.UnorderedDiffs()
 		}
 		for _, d := range diffs {
-			bld.WriteString(d.CanonicalStatementString())
-			bld.WriteString(";\n")
+			writeDiff(d)
 		}
 		return nil
 	}
@@ -66,8 +74,7 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 			return "", err
 		}
 		for _, e := range schema.Entities() {
-			bld.WriteString(e.Create().CanonicalStatementString())
-			bld.WriteString(";\n")
+			writeDiff(e.Create())
 		}
 	case "diff":
 		if err := getDiffs(false); err != nil {
@@ -86,8 +93,7 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 			return "", err
 		}
 		if !diff.IsEmpty() {
-			bld.WriteString(diff.CanonicalStatementString())
-			bld.WriteString(";\n")
+			writeDiff(diff)
 		}
 	case "diff-view":
 		if source == target {
@@ -98,8 +104,7 @@ func Exec(ctx context.Context, command string, source string, target string) (ou
 			return "", err
 		}
 		if !diff.IsEmpty() {
-			bld.WriteString(diff.CanonicalStatementString())
-			bld.WriteString(";\n")
+			writeDiff(diff)
 		}
 	case "apply":
 	default:
