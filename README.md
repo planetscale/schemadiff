@@ -246,6 +246,33 @@ ALTER VIEW `v1` AS SELECT `id`, `name` FROM `t1`;
 
 Consider that running `schemadiff diff` on the same views above results with validation error, because the referenced table `t1` does not appear in the schema definition. `diff-view` does not attempt to resolve dependencies.
 
+### Textual diff format output
+
+You may add `--textual` flag to get a diff-format output rather than semantic SQL output:
+
+```sh
+echo "create table t (id int primary key, i int); create view v as select id from t" > /tmp/schema_v1.sql
+echo "create table t (id bigint primary key, i int, key (i)); create table t2 (id int primary key, name varchar(128) not null default '')" > /tmp/schema_v2.sql
+schemadiff diff --source /tmp/schema_v1.sql --target /tmp/schema_v2.sql --textual
+```
+
+```diff
+-CREATE VIEW `v` AS SELECT `id` FROM `t`;
+ CREATE TABLE `t` (
+-	`id` int,
++	`id` bigint,
+ 	`i` int,
+ 	PRIMARY KEY (`id`)
++	KEY `i` (`i`)
+ );
++CREATE TABLE `t2` (
++	`id` int,
++	`name` varchar(128) NOT NULL DEFAULT '',
++	PRIMARY KEY (`id`)
++);
+```
+
+The textual diff still works semantically under the hood, and it will ignore trailing comma changes, index reordering, cosntraint name changes, etc.
 
 ## Binaries
 

@@ -11,7 +11,7 @@ import (
 )
 
 func exitWithError(err error) {
-	fmt.Println(err)
+	fmt.Fprintf(os.Stderr, "%+v\n", err)
 	os.Exit(2)
 }
 
@@ -20,6 +20,7 @@ func main() {
 
 	source := flag.String("source", "", "Input source (file name / directory / empty for stdin)")
 	target := flag.String("target", "", "Input target (file name / directory / empty for stdin)")
+	textual := flag.Bool("textual", false, "Output textual diff rather than semantic SQL diff")
 	flag.Parse()
 
 	args := flag.Args()
@@ -27,7 +28,7 @@ func main() {
 		exitWithError(errors.New("one argument expected. Usage: schemadiff [flags...] <load|diff|ordered-diff|diff-table|diff-view>"))
 	}
 	command := args[0]
-	output, err := core.Exec(ctx, command, *source, *target)
+	output, err := core.Exec(ctx, command, *source, *target, *textual)
 	if err != nil {
 		exitWithError(err)
 	}
