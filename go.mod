@@ -7,7 +7,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/sync v0.7.0
-	vitess.io/vitess v0.10.3-0.20240613054858-e907c42ad6be
+	vitess.io/vitess v0.19.4
 )
 
 require (
