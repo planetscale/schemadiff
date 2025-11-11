@@ -53,7 +53,7 @@ jobs:
           script/ci-github.sh
 
       - name: Upload schemadiff binary artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: schemadiff
           path: bin/schemadiff
