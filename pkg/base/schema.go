@@ -130,7 +130,7 @@ func readDatabaseSchema(inputSourceValue string) ([]string, error) {
 		if err != nil {
 			return err
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 
 		for rows.Next() {
 			var entityName string
@@ -165,7 +165,7 @@ func readDatabaseSchema(inputSourceValue string) ([]string, error) {
 			if err != nil {
 				return vterrors.Wrapf(err, "showing CREATE statement for %s", name)
 			}
-			defer rows.Close()
+			defer func() { _ = rows.Close() }()
 
 			var createStatement string
 			var placeholder1, placeholder2, placeholder3 string

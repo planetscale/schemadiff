@@ -35,9 +35,8 @@ jobs:
         run:  make build
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.56.2
           args: --timeout=5m
           skip-cache: false
 
@@ -53,7 +52,7 @@ jobs:
           script/ci-github.sh
 
       - name: Upload schemadiff binary artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: schemadiff
           path: bin/schemadiff

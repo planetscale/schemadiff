@@ -100,7 +100,11 @@ func TestExecLoad(t *testing.T) {
 	t.Run("from-file", func(t *testing.T) {
 		fileFrom := writeSchemaFile(t, schemaFrom)
 		require.NotEmpty(t, fileFrom)
-		defer os.RemoveAll(fileFrom)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(fileFrom); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 		schema, err := Exec(ctx, "load", fileFrom, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, sqlsToMultiStatementText(loadFrom), schema)
@@ -108,7 +112,11 @@ func TestExecLoad(t *testing.T) {
 	t.Run("from-file-textual", func(t *testing.T) {
 		fileFrom := writeSchemaFile(t, schemaFrom)
 		require.NotEmpty(t, fileFrom)
-		defer os.RemoveAll(fileFrom)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(fileFrom); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 		schema, err := Exec(ctx, "load", fileFrom, "", true)
 		assert.NoError(t, err)
 		expect := []string{}
@@ -126,7 +134,11 @@ func TestExecLoad(t *testing.T) {
 	t.Run("from-dir", func(t *testing.T) {
 		dirFrom := writeSchemaDir(t, schemaFrom)
 		require.NotEmpty(t, dirFrom)
-		defer os.RemoveAll(dirFrom)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(dirFrom); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 		schema, err := Exec(ctx, "load", dirFrom, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, sqlsToMultiStatementText(loadFrom), schema)
@@ -135,7 +147,11 @@ func TestExecLoad(t *testing.T) {
 	t.Run("to-file", func(t *testing.T) {
 		fileTo := writeSchemaFile(t, schemaTo)
 		require.NotEmpty(t, fileTo)
-		defer os.RemoveAll(fileTo)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(fileTo); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 		schema, err := Exec(ctx, "load", fileTo, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, sqlsToMultiStatementText(loadTo), schema)
@@ -144,7 +160,11 @@ func TestExecLoad(t *testing.T) {
 	t.Run("to-dir", func(t *testing.T) {
 		dirTo := writeSchemaDir(t, schemaTo)
 		require.NotEmpty(t, dirTo)
-		defer os.RemoveAll(dirTo)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(dirTo); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 		schema, err := Exec(ctx, "load", dirTo, "", false)
 		assert.NoError(t, err)
 		assert.Equal(t, sqlsToMultiStatementText(loadTo), schema)
@@ -152,7 +172,11 @@ func TestExecLoad(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		emptyFile := writeSchemaFile(t, nil)
 		require.NotEmpty(t, emptyFile) // testing that the *name* is not empty...
-		defer os.RemoveAll(emptyFile)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(emptyFile); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		schema, err := Exec(ctx, "load", emptyFile, "", false)
 		assert.NoError(t, err)
@@ -165,22 +189,42 @@ func TestExecDiff(t *testing.T) {
 
 	fileFrom := writeSchemaFile(t, schemaFrom)
 	require.NotEmpty(t, fileFrom)
-	defer os.RemoveAll(fileFrom)
+	t.Cleanup(func() {
+		if err := os.RemoveAll(fileFrom); err != nil {
+			t.Logf("cleanup failed: %v", err)
+		}
+	})
 
 	fileTo := writeSchemaFile(t, schemaTo)
 	require.NotEmpty(t, fileTo)
-	defer os.RemoveAll(fileTo)
+	t.Cleanup(func() {
+		if err := os.RemoveAll(fileTo); err != nil {
+			t.Logf("cleanup failed: %v", err)
+		}
+	})
 
 	dirFrom := writeSchemaDir(t, schemaFrom)
 	require.NotEmpty(t, dirFrom)
-	defer os.RemoveAll(dirFrom)
+	t.Cleanup(func() {
+		if err := os.RemoveAll(dirFrom); err != nil {
+			t.Logf("cleanup failed: %v", err)
+		}
+	})
 
 	dirTo := writeSchemaDir(t, schemaTo)
 	require.NotEmpty(t, dirTo)
-	defer os.RemoveAll(dirTo)
+	t.Cleanup(func() {
+		if err := os.RemoveAll(dirTo); err != nil {
+			t.Logf("cleanup failed: %v", err)
+		}
+	})
 
 	emptyFile := writeSchemaFile(t, nil)
-	defer os.RemoveAll(emptyFile)
+	t.Cleanup(func() {
+		if err := os.RemoveAll(emptyFile); err != nil {
+			t.Logf("cleanup failed: %v", err)
+		}
+	})
 
 	tcases := []struct {
 		name        string
@@ -326,11 +370,19 @@ func TestExecDiffTable(t *testing.T) {
 	t.Run("t1-t1", func(t *testing.T) {
 		from := writeSchemaFile(t, schemaFrom[0:1])
 		require.NotEmpty(t, from)
-		defer os.RemoveAll(from)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(from); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		to := writeSchemaFile(t, schemaTo[0:1])
 		require.NotEmpty(t, to)
-		defer os.RemoveAll(to)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(to); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		diff, err := Exec(ctx, "diff-table", from, to, false)
 		assert.NoError(t, err)
@@ -339,11 +391,19 @@ func TestExecDiffTable(t *testing.T) {
 	t.Run("t1-t3", func(t *testing.T) {
 		from := writeSchemaFile(t, schemaFrom[0:1])
 		require.NotEmpty(t, from)
-		defer os.RemoveAll(from)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(from); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		to := writeSchemaFile(t, schemaTo[3:])
 		require.NotEmpty(t, to)
-		defer os.RemoveAll(to)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(to); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		diff, err := Exec(ctx, "diff-table", from, to, false)
 		assert.NoError(t, err)
@@ -352,11 +412,19 @@ func TestExecDiffTable(t *testing.T) {
 	t.Run("t1-t3-textual", func(t *testing.T) {
 		from := writeSchemaFile(t, schemaFrom[0:1])
 		require.NotEmpty(t, from)
-		defer os.RemoveAll(from)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(from); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		to := writeSchemaFile(t, schemaTo[3:])
 		require.NotEmpty(t, to)
-		defer os.RemoveAll(to)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(to); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		diff, err := Exec(ctx, "diff-table", from, to, true)
 		assert.NoError(t, err)
@@ -365,11 +433,19 @@ func TestExecDiffTable(t *testing.T) {
 	t.Run("t1-vone", func(t *testing.T) {
 		from := writeSchemaFile(t, schemaFrom[0:1])
 		require.NotEmpty(t, from)
-		defer os.RemoveAll(from)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(from); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		to := writeSchemaFile(t, schemaTo[1:2])
 		require.NotEmpty(t, to)
-		defer os.RemoveAll(to)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(to); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		_, err := Exec(ctx, "diff-table", from, to, false)
 		assert.Error(t, err)
@@ -378,11 +454,19 @@ func TestExecDiffTable(t *testing.T) {
 	t.Run("v1-vone", func(t *testing.T) {
 		from := writeSchemaFile(t, schemaFrom[1:2])
 		require.NotEmpty(t, from)
-		defer os.RemoveAll(from)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(from); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		to := writeSchemaFile(t, schemaTo[1:2])
 		require.NotEmpty(t, to)
-		defer os.RemoveAll(to)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(to); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		diff, err := Exec(ctx, "diff-view", from, to, false)
 		assert.NoError(t, err)
@@ -391,11 +475,19 @@ func TestExecDiffTable(t *testing.T) {
 	t.Run("v1-v2", func(t *testing.T) {
 		from := writeSchemaFile(t, schemaFrom[1:2])
 		require.NotEmpty(t, from)
-		defer os.RemoveAll(from)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(from); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		to := writeSchemaFile(t, []string{"create view v2 as select id, 1 from t1"})
 		require.NotEmpty(t, to)
-		defer os.RemoveAll(to)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(to); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		diff, err := Exec(ctx, "diff-view", from, to, false)
 		assert.NoError(t, err)
@@ -404,11 +496,19 @@ func TestExecDiffTable(t *testing.T) {
 	t.Run("t1-schema", func(t *testing.T) {
 		from := writeSchemaFile(t, schemaFrom[0:1])
 		require.NotEmpty(t, from)
-		defer os.RemoveAll(from)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(from); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		to := writeSchemaFile(t, schemaTo)
 		require.NotEmpty(t, to)
-		defer os.RemoveAll(to)
+		t.Cleanup(func() {
+			if err := os.RemoveAll(to); err != nil {
+				t.Logf("cleanup failed: %v", err)
+			}
+		})
 
 		{
 			_, err := Exec(ctx, "diff-table", from, to, false)
