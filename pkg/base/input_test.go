@@ -11,7 +11,11 @@ import (
 func TestDetectInputSource(t *testing.T) {
 	f, err := os.CreateTemp(os.TempDir(), "schemadiff-unit-")
 	require.NoError(t, err)
-	defer os.Remove(f.Name())
+	t.Cleanup(func() {
+		if err := os.Remove(f.Name()); err != nil {
+			t.Logf("cleanup failed: %v", err)
+		}
+	})
 
 	tcases := []struct {
 		val       string
